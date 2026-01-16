@@ -27,6 +27,14 @@ def preview():
 def states_summary():
     summary = df.groupby("state")["demo_age_5_17"].sum().reset_index()
     return summary.to_dict(orient="records")
+@app.get("/stats")
+def get_stats():
+    return {
+        "total": 1200,
+        "critical": 45,
+        "warning": 120,
+        "stable": 1035
+    }
 
 
 @app.get("/alerts")
