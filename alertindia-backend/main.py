@@ -22,19 +22,28 @@ def root():
 
 @app.get("/preview")
 def preview():
-    return df.head(10).to_dict(orient="records")
+    records = df.head(10).to_dict(orient="records")
+    enhanced = []
+
+    for r in records:
+        val = r.get("demo_age_5_17", 0)
+
+        if val < 20:
+            status = "critical"
+        elif val < 50:
+            status = "warning"
+        else:
+            status = "stable"
+
+        r["status"] = status
+        enhanced.append(r)
+
+    return enhanced
+
 @app.get("/states")
 def states_summary():
     summary = df.groupby("state")["demo_age_5_17"].sum().reset_index()
     return summary.to_dict(orient="records")
-@app.get("/stats")
-def get_stats():
-    return {
-        "total": 1200,
-        "critical": 45,
-        "warning": 120,
-        "stable": 1035
-    }
 
 
 @app.get("/alerts")
@@ -68,3 +77,27 @@ def generate_alerts():
         })
 
     return alerts
+@app.get("/stats")
+def get_stats():
+    critical = 0
+    warning = 0
+    stable = 0
+
+    for _, r in df.iterrows():
+        val = r.get("demo_age_5_17", 0)
+
+        if val < 20:
+            critical += 1
+        elif val < 50:
+            warning += 1
+        else:
+            stable += 1
+
+    total = critical + warning + stable
+
+    return {
+        "total": total,
+        "critical": critical,
+        "warning": warning,
+        "stable": stable
+    }
